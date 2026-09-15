@@ -1,0 +1,55 @@
+name: Deploy React to GitHub Pages
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      # checkout
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Installera Node
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '26'
+
+      # Installera beroenden
+      - name: Install dependencies
+        run: npm ci
+
+      # build -> ./dist
+      - name: Build
+        run: npm run build
+
+      # Ladda upp ./dist
+      - name: Upload artifacts
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: './dist'
+
+  # Publicera på GitHub Pages
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
